@@ -1,9 +1,7 @@
 import css from './ImageGalleryItem.module.css';
 
-export const ImageGalleryItem = () => {
+export const ImageGalleryItem = ({ webformatURL, largeImageURL, id }) => {
   return (
-    <li class={css.galleryItem}>
-      <img class={css.galleryItem__image} src="" alt="" />
-    </li>
+    <img className={css.galleryItem__image} src={webformatURL} id={id} alt="" />
   );
 };

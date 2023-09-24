@@ -1,4 +1,5 @@
 import css from './Searchbar.module.css';
+import PropTypes from 'prop-types';
 
 export const Searchbar = ({ handleSubmit }) => {
   return (
@@ -7,7 +8,6 @@ export const Searchbar = ({ handleSubmit }) => {
         <button type="submit" className={css.button}>
           <span className={css.button__label}>Search</span>
         </button>
-
         <input
           className={css.input}
           type="text"
@@ -19,4 +19,8 @@ export const Searchbar = ({ handleSubmit }) => {
       </form>
     </header>
   );
+};
+
+Searchbar.propTypes = {
+  handleSubmit: PropTypes.func,
 };
