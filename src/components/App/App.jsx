@@ -7,35 +7,22 @@ import { Component } from 'react';
 
 export class App extends Component {
   state = {
-    images: '',
-    error: '',
+    images: [],
     isLoading: false,
     currentPage: 1,
     searchQuery: '',
   };
 
-  async componentDidMount() {
-    await this.getInitialData();
-  }
-
-  async componentDidUpdate() {
-    await this.getInitialData();
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    const oldState = this.state;
-
+  componentDidUpdate = async (prevProps, prevState) => {
     if (
-      nextState.images[0]?.id === oldState.images[0]?.id &&
-      nextState.currentPage === oldState.currentPage
+      prevState.searchQuery !== this.state.searchQuery ||
+      prevState.currentPage !== this.state.currentPage
     ) {
-      return false;
+      await this.fetchImages();
     }
+  };
 
-    return true;
-  }
-
-  getInitialData = async () => {
+  fetchImages = async () => {
     const searchParams = new URLSearchParams({
       key: '38272300-1f1fe77aa9d2a1c8673ac9f3e',
       q: this.state.searchQuery,
@@ -46,40 +33,41 @@ export class App extends Component {
       per_page: 12,
     });
 
-    const response = await axios.get(
-      `https://pixabay.com/api/?${searchParams}`
-    );
+    this.setState({ isLoading: true });
+
     try {
-      const newImages = await response.data.hits;
-      if (this.state.currentPage > 1) {
-        await this.setState(state => {
-          return { images: state.images.concat(newImages) };
-        });
-      } else {
-        await this.setState(state => {
-          return { images: newImages };
-        });
-      }
+      const response = await axios.get(
+        `https://pixabay.com/api/?${searchParams}`
+      );
+
+      const imageList = await response.data.hits;
+
+      this.setState(state => {
+        return { images: [...state.images, ...imageList] };
+      });
+
+      setTimeout(() => {
+        this.setState({ isLoading: false });
+      }, 1000);
     } catch (error) {
-      this.setState({ error });
+      this.setState({ isLoading: false });
+      console.error(error);
     }
   };
 
-  handleSubmit = async event => {
+  handleSubmit = event => {
     event.preventDefault();
-    this.setState({ currentPage: 1 });
     const form = event.currentTarget;
     const searchQuery = form.elements.searchQuery.value;
-    await this.setState(state => {
-      return { searchQuery };
-    });
-    form.elements.searchQuery.value = '';
-
-    await this.getInitialData();
+    this.setState(state => ({
+      currentPage: 1,
+      searchQuery: searchQuery,
+      images: [],
+    }));
   };
 
-  handleClick = async () => {
-    await this.setState(state => {
+  handleClick = () => {
+    this.setState(state => {
       return {
         currentPage: state.currentPage + 1,
       };
@@ -87,16 +75,14 @@ export class App extends Component {
   };
 
   render() {
-    const { error, images } = this.state;
     return (
       <div className={css.app}>
-        {error && <p>Something went wrong: {error.message}</p>}
-        {/* {isLoading && <ContentLoader />} */}
         <Searchbar handleSubmit={this.handleSubmit}></Searchbar>
+        {/* {isLoading && <ContentLoader />} */}
         {this.state.searchQuery !== '' && (
-          <ImageGallery images={images}></ImageGallery>
+          <ImageGallery images={this.state.images}></ImageGallery>
         )}
-        {this.state.images !== '' && (
+        {this.state.images.length >= 12 && (
           <Button handleClick={this.handleClick}></Button>
         )}
       </div>
