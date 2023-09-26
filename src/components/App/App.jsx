@@ -1,8 +1,10 @@
 import css from './App.module.css';
 import axios from 'axios';
 import { Searchbar } from '../Searchbar/Searchbar';
+import { Loader } from 'components/Loader/Loader';
 import { ImageGallery } from 'components/ImageGallery/ImageGallery';
 import { Button } from 'components/Button/Button';
+import { Modal } from 'components/Modal/Modal';
 import { Component } from 'react';
 
 export class App extends Component {
@@ -11,6 +13,8 @@ export class App extends Component {
     isLoading: false,
     currentPage: 1,
     searchQuery: '',
+    isModalOpen: false,
+    selectedImage: '',
   };
 
   componentDidUpdate = async (prevProps, prevState) => {
@@ -43,12 +47,14 @@ export class App extends Component {
       const imageList = await response.data.hits;
 
       this.setState(state => {
-        return { images: [...state.images, ...imageList] };
+        return { images: [...state.images, ...imageList], isLoading: false };
       });
 
-      setTimeout(() => {
-        this.setState({ isLoading: false });
-      }, 1000);
+      if (imageList.length === 0) {
+        return alert(
+          'There are no images left to display with this search query!'
+        );
+      }
     } catch (error) {
       this.setState({ isLoading: false });
       console.error(error);
@@ -59,11 +65,15 @@ export class App extends Component {
     event.preventDefault();
     const form = event.currentTarget;
     const searchQuery = form.elements.searchQuery.value;
-    this.setState(state => ({
-      currentPage: 1,
-      searchQuery: searchQuery,
-      images: [],
-    }));
+    if (this.state.searchQuery === searchQuery) {
+      return;
+    } else {
+      this.setState(state => ({
+        currentPage: 1,
+        searchQuery: searchQuery,
+        images: [],
+      }));
+    }
   };
 
   handleClick = () => {
@@ -74,16 +84,35 @@ export class App extends Component {
     });
   };
 
+  handleModal = event => {
+    const image = event.currentTarget.attributes.largeimage.nodeValue;
+    this.setState(state => {
+      return { selectedImage: image, isModalOpen: true };
+    });
+  };
+
+  handleClose = () => {
+    this.setState(state => {
+      return {
+        isModalOpen: false,
+        selectedImage: '',
+      };
+    });
+  };
+
   render() {
+    const { isLoading, searchQuery, images, isModalOpen, selectedImage } =
+      this.state;
     return (
       <div className={css.app}>
-        <Searchbar handleSubmit={this.handleSubmit}></Searchbar>
-        {/* {isLoading && <ContentLoader />} */}
-        {this.state.searchQuery !== '' && (
-          <ImageGallery images={this.state.images}></ImageGallery>
+        <Searchbar handleSubmit={this.handleSubmit} />
+        {searchQuery !== '' && (
+          <ImageGallery handleModal={this.handleModal} images={images} />
         )}
-        {this.state.images.length >= 12 && (
-          <Button handleClick={this.handleClick}></Button>
+        {isLoading && <Loader />}
+        {images.length >= 12 && <Button handleClick={this.handleClick} />}
+        {isModalOpen && (
+          <Modal image={selectedImage} handleClose={this.handleClose} />
         )}
       </div>
     );
