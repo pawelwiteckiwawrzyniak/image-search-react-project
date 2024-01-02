@@ -1,6 +1,7 @@
 # Image Search React - project
 
 - This is is a dynamic web application built using React, Axios, JavaScript, and CSS. It allows users to seamlessly search and explore images. The application renders real-time search results and enables users to view enlarged versions of selected images through an interactive modal.
+- Live version [_here_]([https://pawelwiteckiwawrzyniak.github.io/website-project/](https://pawelwiteckiwawrzyniak.github.io/image-search-react-project/)).
 
 ## Table of Contents
 
